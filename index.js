@@ -15,16 +15,9 @@ const {
   Routes, 
   ActivityType 
 } = require('discord.js');
-const { 
-  joinVoiceChannel, 
-  createAudioPlayer, 
-  createAudioResource, 
-  AudioPlayerStatus, 
-  VoiceConnectionStatus 
-} = require('@discordjs/voice');
-const play = require('play-dl');
-const spotifyUrl = require('spotify-url-info')(fetch);
-const ytdlp = require('yt-dlp-exec');
+const { DisTube } = require('distube');
+const { SpotifyPlugin } = require('@distube/spotify');
+const { YtDlpPlugin } = require('@distube/yt-dlp');
 
 const token = process.env.DISCORD_TOKEN;
 if (!token) {
@@ -36,7 +29,6 @@ if (!token) {
 const callbackServer = http.createServer((req, res) => {
   const reqUrl = new URL(req.url, 'http://127.0.0.1:8888');
   if (reqUrl.pathname === '/callback') {
-    const code = reqUrl.searchParams.get('code');
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(`
       <html>
@@ -65,100 +57,114 @@ const client = new Client({
   ]
 });
 
-// Guild Music Queue Map: guildId -> { connection, player, queue: [], currentTrack, loop }
-const queues = new Map();
+// Initialize DisTube Chip-Style Music Engine
+const distube = new DisTube(client, {
+  emitNewSongOnly: true,
+  emitAddSongWhenCreatingQueue: false,
+  plugins: [
+    new SpotifyPlugin({
+      api: {
+        clientId: process.env.SPOTIFY_CLIENT_ID || '8e8767817181457c84c05dd9b7e8bf18',
+        clientSecret: process.env.SPOTIFY_CLIENT_SECRET || ''
+      }
+    }),
+    new YtDlpPlugin()
+  ]
+});
 
-function getQueue(guildId) {
-  if (!queues.has(guildId)) {
-    queues.set(guildId, {
-      connection: null,
-      player: createAudioPlayer(),
-      queue: [],
-      currentTrack: null,
-      loop: false
-    });
-  }
-  return queues.get(guildId);
+// Helper function: Build Chip-style Player Dashboard Embed + Buttons
+function createPlayerDashboard(queue, song) {
+  const embed = new EmbedBuilder()
+    .setColor(0x1DB954)
+    .setTitle('🎶 Now Playing')
+    .setDescription(`[**${song.name}**](${song.url})`)
+    .setThumbnail(song.thumbnail)
+    .addFields(
+      { name: '👤 Requested By', value: `<@${song.user.id}>`, inline: true },
+      { name: '⏱️ Duration', value: `${song.formattedDuration}`, inline: true },
+      { name: '🎤 Uploader / Artist', value: `${song.uploader.name || 'Spotify / YouTube'}`, inline: true },
+      { name: '🔊 Volume', value: `${queue.volume}%`, inline: true },
+      { name: '🔂 Repeat Mode', value: `${queue.repeatMode === 0 ? 'Disabled' : queue.repeatMode === 1 ? 'Song' : 'Queue'}`, inline: true },
+      { name: '📜 Queue Length', value: `${queue.songs.length} song(s)`, inline: true }
+    )
+    .setFooter({ text: 'ChupkarIVY • Chip-Style Music Engine' })
+    .setTimestamp();
+
+  const row1 = new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setCustomId('btn_pause').setLabel(queue.paused ? '▶️ Resume' : '⏸️ Pause').setStyle(queue.paused ? ButtonStyle.Success : ButtonStyle.Primary),
+    new ButtonBuilder().setCustomId('btn_skip').setLabel('⏭️ Skip').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId('btn_stop').setLabel('⏹️ Stop').setStyle(ButtonStyle.Danger),
+    new ButtonBuilder().setCustomId('btn_shuffle').setLabel('🔀 Shuffle').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId('btn_loop').setLabel('🔂 Loop').setStyle(ButtonStyle.Secondary)
+  );
+
+  const row2 = new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setCustomId('btn_voldown').setLabel('🔉 Vol -').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId('btn_volup').setLabel('🔊 Vol +').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId('btn_queue').setLabel('📜 Queue').setStyle(ButtonStyle.Secondary)
+  );
+
+  return { embeds: [embed], components: [row1, row2] };
 }
 
-async function playNext(guildId, textChannel) {
-  const serverQueue = getQueue(guildId);
-  if (serverQueue.queue.length === 0) {
-    serverQueue.currentTrack = null;
-    if (textChannel) {
-      const embed = new EmbedBuilder()
-        .setColor(0x1DB954)
-        .setTitle('🎶 Queue Finished')
-        .setDescription('Queue is empty! Add more songs using `/play`.')
-        .setTimestamp();
-      textChannel.send({ embeds: [embed] }).catch(() => {});
-    }
-    return;
-  }
+// DisTube Event Listeners
+distube.on('playSong', (queue, song) => {
+  const messageData = createPlayerDashboard(queue, song);
+  queue.textChannel?.send(messageData).then(msg => {
+    queue.dashboardMessage = msg;
+  }).catch(() => {});
+});
 
-  const track = serverQueue.queue.shift();
-  serverQueue.currentTrack = track;
+distube.on('addSong', (queue, song) => {
+  const embed = new EmbedBuilder()
+    .setColor(0x1DB954)
+    .setTitle('➕ Added to Queue')
+    .setDescription(`[**${song.name}**](${song.url}) - \`${song.formattedDuration}\``)
+    .setThumbnail(song.thumbnail)
+    .setFooter({ text: `Position #${queue.songs.length}` });
 
-  try {
-    let searchTarget = track.url;
-    if (!searchTarget.includes('youtube.com') && !searchTarget.includes('youtu.be')) {
-      searchTarget = `ytsearch:${track.title} ${track.artist || ''}`;
-    }
+  queue.textChannel?.send({ embeds: [embed] }).catch(() => {});
+});
 
-    const output = await ytdlp(searchTarget, {
-      dumpSingleJson: true,
-      noWarnings: true,
-      format: 'bestaudio/best'
-    });
+distube.on('addList', (queue, playlist) => {
+  const embed = new EmbedBuilder()
+    .setColor(0x1DB954)
+    .setTitle('🎶 Added Playlist to Queue')
+    .setDescription(`[**${playlist.name}**](${playlist.url}) (${playlist.songs.length} songs)`);
 
-    const info = output.entries ? output.entries[0] : output;
-    if (!info || !info.url) {
-      throw new Error('Could not extract stream URL');
-    }
+  queue.textChannel?.send({ embeds: [embed] }).catch(() => {});
+});
 
-    const resource = createAudioResource(info.url);
-    serverQueue.player.play(resource);
+distube.on('finish', queue => {
+  const embed = new EmbedBuilder()
+    .setColor(0x1DB954)
+    .setTitle('🎶 Queue Finished')
+    .setDescription('Queue is empty! Play more music with `/play`.');
 
-    if (textChannel) {
-      const embed = new EmbedBuilder()
-        .setColor(0x1DB954)
-        .setTitle('🎵 Now Playing')
-        .setDescription(`[**${info.title || track.title}**](${info.webpage_url || track.url})\n👤 Requested by: <@${track.requestedBy}>`)
-        .setThumbnail(info.thumbnail || track.thumbnail || 'https://open.spotifycdn.com/cdn/images/device-picker/spotify.png')
-        .addFields(
-          { name: '⏱️ Duration', value: track.duration || 'Unknown', inline: true },
-          { name: '🎤 Artist/Channel', value: info.uploader || track.artist || 'Unknown', inline: true }
-        )
-        .setFooter({ text: 'ChupkarIVY Spotify & YouTube Music Engine' })
-        .setTimestamp();
+  queue.textChannel?.send({ embeds: [embed] }).catch(() => {});
+});
 
-      textChannel.send({ embeds: [embed] }).catch(() => {});
-    }
-  } catch (err) {
-    console.error('Playback Error:', err.message);
-    if (textChannel) {
-      textChannel.send(`⚠️ Error playing **${track.title}**: ${err.message}`).catch(() => {});
-    }
-    playNext(guildId, textChannel);
-  }
-}
+distube.on('error', (channel, error) => {
+  console.error('DisTube Error:', error);
+  channel?.send(`⚠️ Music Engine Error: ${error.message || error}`).catch(() => {});
+});
 
 client.once('ready', async (c) => {
   console.log('==========================================');
-  console.log(`🟢 SUCCESS! ChupkarIVY Music Bot is ONLINE as: ${c.user.tag}`);
+  console.log(`🟢 SUCCESS! ChupkarIVY Chip Music Bot is ONLINE as: ${c.user.tag}`);
   console.log(`🌐 Serving in ${c.guilds.cache.size} server(s)`);
   console.log('==========================================');
 
-  c.user.setActivity('Spotify Music | /play', { type: ActivityType.Listening });
+  c.user.setActivity('Chip Music Engine | /play', { type: ActivityType.Listening });
 
   // Define Slash Commands
   const commands = [
     new SlashCommandBuilder()
       .setName('play')
-      .setDescription('Play a song or playlist from Spotify / YouTube')
+      .setDescription('Play any song or playlist from Spotify / YouTube / SoundCloud')
       .addStringOption(option =>
         option.setName('query')
-          .setDescription('Song title, artist name, Spotify link, or YouTube link')
+          .setDescription('Song title, Spotify link, or YouTube link')
           .setRequired(true)),
 
     new SlashCommandBuilder()
@@ -175,7 +181,15 @@ client.once('ready', async (c) => {
 
     new SlashCommandBuilder()
       .setName('stop')
-      .setDescription('Stop music playback and clear the queue'),
+      .setDescription('Stop music playback and clear queue'),
+
+    new SlashCommandBuilder()
+      .setName('volume')
+      .setDescription('Set music playback volume (1-100)')
+      .addIntegerOption(option =>
+        option.setName('percent')
+          .setDescription('Volume percentage (1-100)')
+          .setRequired(true)),
 
     new SlashCommandBuilder()
       .setName('join')
@@ -195,7 +209,7 @@ client.once('ready', async (c) => {
 
     new SlashCommandBuilder()
       .setName('link')
-      .setDescription('Link your Spotify account to mirror playback & sync listening'),
+      .setDescription('Link your Spotify account'),
 
     new SlashCommandBuilder()
       .setName('unlink')
@@ -203,7 +217,7 @@ client.once('ready', async (c) => {
 
     new SlashCommandBuilder()
       .setName('help')
-      .setDescription('View list of available music commands')
+      .setDescription('View Chip Bot music commands')
   ].map(cmd => cmd.toJSON());
 
   try {
@@ -220,7 +234,74 @@ client.once('ready', async (c) => {
   }
 });
 
+// Button Interaction Handler for Chip Dashboard
 client.on('interactionCreate', async (interaction) => {
+  if (interaction.isButton()) {
+    const queue = distube.getQueue(interaction.guildId);
+    if (!queue) {
+      return interaction.reply({ content: '❌ No active music playing!', flags: 64 });
+    }
+
+    const { customId } = interaction;
+
+    if (customId === 'btn_pause') {
+      if (queue.paused) {
+        distube.resume(interaction.guildId);
+        return interaction.reply({ content: '▶️ Resumed playback.', flags: 64 });
+      } else {
+        distube.pause(interaction.guildId);
+        return interaction.reply({ content: '⏸️ Paused playback.', flags: 64 });
+      }
+    }
+
+    if (customId === 'btn_skip') {
+      try {
+        await distube.skip(interaction.guildId);
+        return interaction.reply({ content: '⏭️ Skipped to next song.', flags: 64 });
+      } catch {
+        distube.stop(interaction.guildId);
+        return interaction.reply({ content: '⏹️ Stopped playback (end of queue).', flags: 64 });
+      }
+    }
+
+    if (customId === 'btn_stop') {
+      distube.stop(interaction.guildId);
+      return interaction.reply({ content: '⏹️ Stopped music and cleared queue.', flags: 64 });
+    }
+
+    if (customId === 'btn_shuffle') {
+      distube.shuffle(interaction.guildId);
+      return interaction.reply({ content: '🔀 Shuffled queue!', flags: 64 });
+    }
+
+    if (customId === 'btn_loop') {
+      const mode = distube.setRepeatMode(interaction.guildId);
+      const modeText = mode === 0 ? 'Disabled' : mode === 1 ? 'Song' : 'Queue';
+      return interaction.reply({ content: `🔂 Repeat Mode: **${modeText}**`, flags: 64 });
+    }
+
+    if (customId === 'btn_volup') {
+      const newVol = Math.min(queue.volume + 10, 100);
+      distube.setVolume(interaction.guildId, newVol);
+      return interaction.reply({ content: `🔊 Volume set to **${newVol}%**`, flags: 64 });
+    }
+
+    if (customId === 'btn_voldown') {
+      const newVol = Math.max(queue.volume - 10, 1);
+      distube.setVolume(interaction.guildId, newVol);
+      return interaction.reply({ content: `🔉 Volume set to **${newVol}%**`, flags: 64 });
+    }
+
+    if (customId === 'btn_queue') {
+      let qText = queue.songs.slice(0, 10).map((s, i) => `${i + 1}. [${s.name}](${s.url}) - \`${s.formattedDuration}\``).join('\n');
+      const embed = new EmbedBuilder()
+        .setColor(0x1DB954)
+        .setTitle('📜 Music Queue')
+        .setDescription(qText || 'Queue is empty!');
+      return interaction.reply({ embeds: [embed], flags: 64 });
+    }
+  }
+
   if (!interaction.isChatInputCommand()) return;
 
   const { commandName, guildId, member, channel } = interaction;
@@ -260,109 +341,90 @@ client.on('interactionCreate', async (interaction) => {
   if (commandName === 'help') {
     const embed = new EmbedBuilder()
       .setColor(0x1DB954)
-      .setTitle('🎧 ChupkarIVY Music Commands')
-      .setDescription('High Quality Spotify & YouTube Music Bot')
+      .setTitle('🎧 ChupkarIVY Chip-Style Music Commands')
+      .setDescription('Chip-Style High Quality Music Bot')
       .addFields(
-        { name: '🎵 `/play <query/url>`', value: 'Play song or playlist from Spotify / YouTube' },
+        { name: '🎵 `/play <query/url>`', value: 'Play song or playlist from Spotify / YouTube / SoundCloud' },
         { name: '🔗 `/link` / `/unlink`', value: 'Link or unlink your Spotify account' },
-        { name: '⏸️ `/pause`', value: 'Pause current playback' },
-        { name: '▶️ `/resume`', value: 'Resume paused playback' },
-        { name: '⏭️ `/skip`', value: 'Skip to next song' },
-        { name: '⏹️ `/stop`', value: 'Stop playback and clear queue' },
+        { name: '⏸️ `/pause` / `/resume`', value: 'Pause or resume current playback' },
+        { name: '⏭️ `/skip` / `/stop`', value: 'Skip or stop current queue' },
+        { name: '🔊 `/volume <1-100>`', value: 'Adjust music volume' },
         { name: '🔊 `/join` / `/leave`', value: 'Connect or disconnect voice channel' },
-        { name: '📜 `/queue`', value: 'View upcoming queued songs' },
-        { name: '🎶 `/nowplaying`', value: 'Show current playing track info' }
+        { name: '📜 `/queue` / `/nowplaying`', value: 'View queue or current track info' }
       )
-      .setFooter({ text: 'ChupkarIVY 24/7 Music Engine' })
+      .setFooter({ text: 'ChupkarIVY Chip Engine' })
       .setTimestamp();
 
     return interaction.reply({ embeds: [embed] });
   }
 
-  if (['play', 'pause', 'resume', 'skip', 'stop', 'join', 'leave', 'queue', 'nowplaying'].includes(commandName)) {
+  if (['play', 'pause', 'resume', 'skip', 'stop', 'join', 'leave', 'queue', 'nowplaying', 'volume'].includes(commandName)) {
     if (!voiceChannel && ['play', 'join'].includes(commandName)) {
       return interaction.reply({ content: '❌ You must be in a Voice Channel to use music commands!', flags: 64 });
     }
 
-    const serverQueue = getQueue(guildId);
-
     if (commandName === 'join') {
-        serverQueue.connection = joinVoiceChannel({
-          channelId: voiceChannel.id,
-          guildId: guildId,
-          adapterCreator: voiceChannel.guild.voiceAdapterCreator,
-          selfDeaf: true,
-          selfMute: false
-        });
-      serverQueue.connection.subscribe(serverQueue.player);
+      distube.voices.join(voiceChannel);
       return interaction.reply(`🔊 Joined **${voiceChannel.name}**!`);
     }
 
     if (commandName === 'leave') {
-      if (serverQueue.connection) {
-        serverQueue.connection.destroy();
-        serverQueue.connection = null;
-        serverQueue.queue = [];
-        serverQueue.currentTrack = null;
-        return interaction.reply('👋 Disconnected from voice channel.');
-      }
-      return interaction.reply({ content: '❌ I am not connected to a voice channel!', flags: 64 });
+      distube.voices.leave(guildId);
+      return interaction.reply('👋 Disconnected from voice channel.');
     }
 
+    const queue = distube.getQueue(guildId);
+
     if (commandName === 'pause') {
-      serverQueue.player.pause();
+      if (!queue) return interaction.reply({ content: '❌ No active music playing!', flags: 64 });
+      distube.pause(guildId);
       return interaction.reply('⏸️ Paused playback.');
     }
 
     if (commandName === 'resume') {
-      serverQueue.player.unpause();
+      if (!queue) return interaction.reply({ content: '❌ No active music playing!', flags: 64 });
+      distube.resume(guildId);
       return interaction.reply('▶️ Resumed playback.');
     }
 
     if (commandName === 'skip') {
-      serverQueue.player.stop();
-      return interaction.reply('⏭️ Skipped current song.');
+      if (!queue) return interaction.reply({ content: '❌ No active music playing!', flags: 64 });
+      try {
+        await distube.skip(guildId);
+        return interaction.reply('⏭️ Skipped current song.');
+      } catch {
+        distube.stop(guildId);
+        return interaction.reply('⏹️ Stopped playback.');
+      }
     }
 
     if (commandName === 'stop') {
-      serverQueue.queue = [];
-      serverQueue.currentTrack = null;
-      serverQueue.player.stop();
+      if (!queue) return interaction.reply({ content: '❌ No active music playing!', flags: 64 });
+      distube.stop(guildId);
       return interaction.reply('⏹️ Stopped playback and cleared queue.');
     }
 
+    if (commandName === 'volume') {
+      if (!queue) return interaction.reply({ content: '❌ No active music playing!', flags: 64 });
+      const percent = interaction.options.getInteger('percent');
+      distube.setVolume(guildId, percent);
+      return interaction.reply(`🔊 Volume set to **${percent}%**`);
+    }
+
     if (commandName === 'nowplaying') {
-      if (!serverQueue.currentTrack) {
-        return interaction.reply({ content: '❌ No song is currently playing!', flags: 64 });
-      }
-      const track = serverQueue.currentTrack;
-      const embed = new EmbedBuilder()
-        .setColor(0x1DB954)
-        .setTitle('🎵 Currently Playing')
-        .setDescription(`[**${track.title}**](${track.url})`)
-        .setThumbnail(track.thumbnail || 'https://open.spotifycdn.com/cdn/images/device-picker/spotify.png')
-        .addFields(
-          { name: '🎤 Artist', value: track.artist || 'Unknown', inline: true },
-          { name: '⏱️ Duration', value: track.duration || 'Unknown', inline: true }
-        );
-      return interaction.reply({ embeds: [embed] });
+      if (!queue || !queue.songs[0]) return interaction.reply({ content: '❌ No song is currently playing!', flags: 64 });
+      const song = queue.songs[0];
+      const messageData = createPlayerDashboard(queue, song);
+      return interaction.reply(messageData);
     }
 
     if (commandName === 'queue') {
-      if (!serverQueue.currentTrack && serverQueue.queue.length === 0) {
-        return interaction.reply({ content: '📜 The queue is empty!', flags: 64 });
-      }
-      let desc = serverQueue.currentTrack ? `**Now Playing:** [${serverQueue.currentTrack.title}](${serverQueue.currentTrack.url})\n\n**Up Next:**\n` : '**Up Next:**\n';
-      serverQueue.queue.slice(0, 10).forEach((t, i) => {
-        desc += `${i + 1}. [${t.title}](${t.url}) - requested by <@${t.requestedBy}>\n`;
-      });
-      if (serverQueue.queue.length > 10) {
-        desc += `\n*...and ${serverQueue.queue.length - 10} more songs*`;
-      }
+      if (!queue || queue.songs.length === 0) return interaction.reply({ content: '📜 The queue is empty!', flags: 64 });
+      let qText = queue.songs.slice(0, 10).map((s, i) => `${i + 1}. [${s.name}](${s.url}) - \`${s.formattedDuration}\``).join('\n');
       const embed = new EmbedBuilder()
         .setColor(0x1DB954)
         .setTitle('📜 Music Queue')
-        .setDescription(desc);
+        .setDescription(qText);
       return interaction.reply({ embeds: [embed] });
     }
 
@@ -370,83 +432,15 @@ client.on('interactionCreate', async (interaction) => {
       await interaction.deferReply();
       const query = interaction.options.getString('query');
 
-      // Ensure voice connection
-      if (!serverQueue.connection || serverQueue.connection.state.status === VoiceConnectionStatus.Destroyed) {
-        serverQueue.connection = joinVoiceChannel({
-          channelId: voiceChannel.id,
-          guildId: guildId,
-          adapterCreator: voiceChannel.guild.voiceAdapterCreator
-        });
-        serverQueue.connection.subscribe(serverQueue.player);
-
-        serverQueue.player.on(AudioPlayerStatus.Idle, () => {
-          playNext(guildId, channel);
-        });
-      }
-
       try {
-        let tracksToAdd = [];
-
-        if (query.includes('spotify.com')) {
-          if (query.includes('/track/')) {
-            const data = await spotifyUrl.getPreview(query);
-            tracksToAdd.push({
-              title: data.title,
-              artist: data.artist,
-              url: query,
-              thumbnail: data.image,
-              duration: '3:00',
-              requestedBy: member.user.id
-            });
-          } else if (query.includes('/playlist/') || query.includes('/album/')) {
-            const tracksData = await spotifyUrl.getTracks(query);
-            tracksData.slice(0, 25).forEach(t => {
-              tracksToAdd.push({
-                title: t.name,
-                artist: t.artists ? t.artists.map(a => a.name).join(', ') : 'Artist',
-                url: query,
-                thumbnail: 'https://open.spotifycdn.com/cdn/images/device-picker/spotify.png',
-                duration: '3:00',
-                requestedBy: member.user.id
-              });
-            });
-          }
-        } else if (query.includes('youtube.com') || query.includes('youtu.be')) {
-          tracksToAdd.push({
-            title: query,
-            artist: 'YouTube',
-            url: query,
-            thumbnail: 'https://open.spotifycdn.com/cdn/images/device-picker/spotify.png',
-            duration: 'Audio',
-            requestedBy: member.user.id
-          });
-        } else {
-          // Direct text search
-          tracksToAdd.push({
-            title: query,
-            artist: 'Search Query',
-            url: query,
-            thumbnail: 'https://open.spotifycdn.com/cdn/images/device-picker/spotify.png',
-            duration: 'Audio',
-            requestedBy: member.user.id
-          });
-        }
-
-        serverQueue.queue.push(...tracksToAdd);
-
-        if (!serverQueue.currentTrack) {
-          await interaction.editReply(`🎵 Added **${tracksToAdd[0].title}** to queue & starting playback!`);
-          playNext(guildId, channel);
-        } else {
-          if (tracksToAdd.length === 1) {
-            await interaction.editReply(`➕ Added **${tracksToAdd[0].title}** to queue (Position #${serverQueue.queue.length})`);
-          } else {
-            await interaction.editReply(`🎶 Added **${tracksToAdd.length} songs** to queue!`);
-          }
-        }
+        await distube.play(voiceChannel, query, {
+          textChannel: channel,
+          member: member
+        });
+        await interaction.editReply(`🎵 Processing **${query}**...`);
       } catch (err) {
         console.error('Play Error:', err);
-        return interaction.editReply(`❌ Error adding song: ${err.message}`);
+        return interaction.editReply(`❌ Error playing song: ${err.message}`);
       }
     }
   }
