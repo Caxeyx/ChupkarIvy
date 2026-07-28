@@ -23,23 +23,21 @@ for (const ifaceName of Object.keys(netIfaces)) {
 }
 console.log(`🌐 Primary Local Network IP: ${mainLocalIp}`);
 
-// Bind UDP sockets explicitly to main local IP to bypass virtual network adapters
+// Hook dgram.createSocket so Discord Voice UDP sockets bind to real Ethernet/Wi-Fi IP
 if (mainLocalIp !== '0.0.0.0') {
   const origCreateSocket = dgram.createSocket;
   dgram.createSocket = function(...args) {
     const socket = origCreateSocket.apply(this, args);
     const origBind = socket.bind;
     socket.bind = function(...bArgs) {
-      let port = 0;
-      let cb;
       if (typeof bArgs[0] === 'number') {
-        port = bArgs[0];
-        if (typeof bArgs[1] === 'function') cb = bArgs[1];
+        const cb = typeof bArgs[1] === 'function' ? bArgs[1] : typeof bArgs[2] === 'function' ? bArgs[2] : undefined;
+        return origBind.call(this, bArgs[0], mainLocalIp, cb);
       } else if (typeof bArgs[0] === 'object' && bArgs[0] !== null) {
-        port = bArgs[0].port || 0;
-        if (typeof bArgs[1] === 'function') cb = bArgs[1];
+        bArgs[0].address = bArgs[0].address || mainLocalIp;
+        return origBind.apply(this, bArgs);
       }
-      return origBind.call(this, port, mainLocalIp, cb);
+      return origBind.apply(this, bArgs);
     };
     return socket;
   };
@@ -315,15 +313,14 @@ async function connectToVoice(voiceChannel, guildId, q) {
   q.connection.subscribe(q.player);
 
   try {
-    await entersState(q.connection, VoiceConnectionStatus.Ready, 10_000);
+    await entersState(q.connection, VoiceConnectionStatus.Ready, 15_000);
     console.log(`🔊 Connected to voice: ${voiceChannel.name}`);
   } catch {
     const status = q.connection?.state?.status;
-    console.log(`🔌 Voice connection state: ${status}`);
-    if (status === VoiceConnectionStatus.Destroyed) {
-      q.connection = null;
-      throw new Error('Failed to join voice channel.');
-    }
+    console.error(`❌ Voice connection failed to reach Ready. Current status: ${status}`);
+    q.connection?.destroy();
+    q.connection = null;
+    throw new Error('Voice connection timed out (UDP handshake failed). Check bot permissions in voice channel or server region settings.');
   }
 
   q.connection.on(VoiceConnectionStatus.Disconnected, async () => {
