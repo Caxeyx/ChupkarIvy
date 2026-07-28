@@ -9,7 +9,7 @@ edition = "2021"
 chupkarivy_audio = { path = "../chupkarivy_audio" }
 chupkarivy_utils = { path = "../chupkarivy_utils" }
 
-librespot = { git = "https://github.com/ChupkarIvyMusic/librespot.git", version = "0.5.0-dev", default-features = false }
+librespot = { git = "https://github.com/librespot-org/librespot.git", tag = "v0.5.0", default-features = false }
 songbird = { version = "0.4.4", features = ["simd-json"] }
 tokio = { version = "1.41.1", features = ["full"] }
 anyhow = "1.0.93"

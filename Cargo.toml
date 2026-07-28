@@ -31,7 +31,7 @@ chupkarivy_session = { path = "./chupkarivy_session" }
 chupkarivy_utils = { path = "./chupkarivy_utils" }
 chupkarivy_stats = { path = "./chupkarivy_stats", optional = true }
 
-librespot = { git = "https://github.com/ChupkarIvyMusic/librespot.git", default-features = false }
+librespot = { git = "https://github.com/librespot-org/librespot.git", tag = "v0.5.0", default-features = false }
 anyhow = "1.0.93"
 dotenvy = "0.15.7"
 env_logger = "0.11.5"

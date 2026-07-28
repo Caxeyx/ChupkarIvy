@@ -472,6 +472,108 @@ dependencies = [
 ]
 
 [[package]]
+name = "chupkarivy"
+version = "2.2.6"
+dependencies = [
+ "anyhow",
+ "chupkarivy_config",
+ "chupkarivy_database",
+ "chupkarivy_player",
+ "chupkarivy_session",
+ "chupkarivy_stats",
+ "chupkarivy_utils",
+ "dotenvy",
+ "env_logger",
+ "librespot",
+ "log",
+ "poise",
+ "rustls 0.23.16",
+ "serenity",
+ "songbird",
+ "tokio",
+]
+
+[[package]]
+name = "chupkarivy_audio"
+version = "2.2.6"
+dependencies = [
+ "librespot",
+ "songbird",
+ "tokio",
+ "zerocopy 0.8.9",
+]
+
+[[package]]
+name = "chupkarivy_config"
+version = "2.2.6"
+dependencies = [
+ "rspotify",
+ "serenity",
+]
+
+[[package]]
+name = "chupkarivy_database"
+version = "2.2.6"
+dependencies = [
+ "chrono",
+ "chupkarivy_config",
+ "diesel",
+ "diesel-async",
+ "diesel_async_migrations",
+ "rand",
+ "rspotify",
+ "thiserror 2.0.3",
+]
+
+[[package]]
+name = "chupkarivy_player"
+version = "2.2.6"
+dependencies = [
+ "anyhow",
+ "chupkarivy_audio",
+ "chupkarivy_utils",
+ "hex",
+ "librespot",
+ "log",
+ "songbird",
+ "symphonia",
+ "tokio",
+]
+
+[[package]]
+name = "chupkarivy_session"
+version = "2.2.6"
+dependencies = [
+ "anyhow",
+ "base64 0.22.1",
+ "chupkarivy_config",
+ "chupkarivy_database",
+ "chupkarivy_player",
+ "chupkarivy_utils",
+ "librespot",
+ "log",
+ "poise",
+ "serenity",
+ "songbird",
+ "thiserror 2.0.3",
+ "tokio",
+]
+
+[[package]]
+name = "chupkarivy_stats"
+version = "2.2.6"
+dependencies = [
+ "redis",
+]
+
+[[package]]
+name = "chupkarivy_utils"
+version = "2.2.6"
+dependencies = [
+ "poise",
+]
+
+[[package]]
 name = "cipher"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1469,6 +1571,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "hostname"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "617aaa3557aef3810a6369d0a99fac8a080891b68bd9f9812a1eeda0c0730cbd"
+dependencies = [
+ "cfg-if",
+ "libc",
+ "windows-link",
+]
+
+[[package]]
 name = "http"
 version = "0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1849,6 +1962,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "if-addrs"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bb2a33e9c38988ecbda730c85b0fd9ddcdf83c0305ac7fd21c8bb9f57f2f0cc8"
+dependencies = [
+ "libc",
+ "windows-sys 0.52.0",
+]
+
+[[package]]
 name = "indexmap"
 version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2020,9 +2143,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8355be11b20d696c8f18f6cc018c4e372165b1fa8126cef092399c9951984ffa"
 
 [[package]]
+name = "libmdns"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "48854699e11b111433431b69cee2365fcab0b29b06993f48c257dfbaf6395862"
+dependencies = [
+ "byteorder",
+ "futures-util",
+ "hostname",
+ "if-addrs",
+ "log",
+ "multimap",
+ "rand",
+ "socket2",
+ "thiserror 1.0.69",
+ "tokio",
+]
+
+[[package]]
 name = "librespot"
 version = "0.5.0"
-source = "git+https://github.com/SpoticordMusic/librespot.git#4e24c563ffa15ff128b7f248413725b021544df7"
+source = "git+https://github.com/librespot-org/librespot.git?tag=v0.5.0#84d28e887b0c9b8e07dcbf890a17cdfe7f3cd8d1"
 dependencies = [
  "data-encoding",
  "env_logger",
@@ -2047,7 +2188,7 @@ dependencies = [
 [[package]]
 name = "librespot-audio"
 version = "0.5.0"
-source = "git+https://github.com/SpoticordMusic/librespot.git#4e24c563ffa15ff128b7f248413725b021544df7"
+source = "git+https://github.com/librespot-org/librespot.git?tag=v0.5.0#84d28e887b0c9b8e07dcbf890a17cdfe7f3cd8d1"
 dependencies = [
  "aes",
  "bytes",
@@ -2067,7 +2208,7 @@ dependencies = [
 [[package]]
 name = "librespot-connect"
 version = "0.5.0"
-source = "git+https://github.com/SpoticordMusic/librespot.git#4e24c563ffa15ff128b7f248413725b021544df7"
+source = "git+https://github.com/librespot-org/librespot.git?tag=v0.5.0#84d28e887b0c9b8e07dcbf890a17cdfe7f3cd8d1"
 dependencies = [
  "form_urlencoded",
  "futures-util",
@@ -2087,7 +2228,7 @@ dependencies = [
 [[package]]
 name = "librespot-core"
 version = "0.5.0"
-source = "git+https://github.com/SpoticordMusic/librespot.git#4e24c563ffa15ff128b7f248413725b021544df7"
+source = "git+https://github.com/librespot-org/librespot.git?tag=v0.5.0#84d28e887b0c9b8e07dcbf890a17cdfe7f3cd8d1"
 dependencies = [
  "aes",
  "base64 0.22.1",
@@ -2132,7 +2273,7 @@ dependencies = [
  "time",
  "tokio",
  "tokio-stream",
- "tokio-tungstenite 0.24.0",
+ "tokio-tungstenite 0.18.0",
  "tokio-util",
  "url",
  "uuid",
@@ -2142,7 +2283,7 @@ dependencies = [
 [[package]]
 name = "librespot-discovery"
 version = "0.5.0"
-source = "git+https://github.com/SpoticordMusic/librespot.git#4e24c563ffa15ff128b7f248413725b021544df7"
+source = "git+https://github.com/librespot-org/librespot.git?tag=v0.5.0#84d28e887b0c9b8e07dcbf890a17cdfe7f3cd8d1"
 dependencies = [
  "aes",
  "base64 0.22.1",
@@ -2155,11 +2296,11 @@ dependencies = [
  "http-body-util",
  "hyper 1.5.0",
  "hyper-util",
+ "libmdns",
  "librespot-core",
  "log",
  "rand",
  "serde_json",
- "serde_repr",
  "sha1",
  "thiserror 1.0.69",
  "tokio",
@@ -2168,7 +2309,7 @@ dependencies = [
 [[package]]
 name = "librespot-metadata"
 version = "0.5.0"
-source = "git+https://github.com/SpoticordMusic/librespot.git#4e24c563ffa15ff128b7f248413725b021544df7"
+source = "git+https://github.com/librespot-org/librespot.git?tag=v0.5.0#84d28e887b0c9b8e07dcbf890a17cdfe7f3cd8d1"
 dependencies = [
  "async-trait",
  "bytes",
@@ -2185,7 +2326,7 @@ dependencies = [
 [[package]]
 name = "librespot-oauth"
 version = "0.5.0"
-source = "git+https://github.com/SpoticordMusic/librespot.git#4e24c563ffa15ff128b7f248413725b021544df7"
+source = "git+https://github.com/librespot-org/librespot.git?tag=v0.5.0#84d28e887b0c9b8e07dcbf890a17cdfe7f3cd8d1"
 dependencies = [
  "log",
  "oauth2",
@@ -2196,7 +2337,7 @@ dependencies = [
 [[package]]
 name = "librespot-playback"
 version = "0.5.0"
-source = "git+https://github.com/SpoticordMusic/librespot.git#4e24c563ffa15ff128b7f248413725b021544df7"
+source = "git+https://github.com/librespot-org/librespot.git?tag=v0.5.0#84d28e887b0c9b8e07dcbf890a17cdfe7f3cd8d1"
 dependencies = [
  "futures-util",
  "librespot-audio",
@@ -2216,7 +2357,7 @@ dependencies = [
 [[package]]
 name = "librespot-protocol"
 version = "0.5.0"
-source = "git+https://github.com/SpoticordMusic/librespot.git#4e24c563ffa15ff128b7f248413725b021544df7"
+source = "git+https://github.com/librespot-org/librespot.git?tag=v0.5.0#84d28e887b0c9b8e07dcbf890a17cdfe7f3cd8d1"
 dependencies = [
  "protobuf",
  "protobuf-codegen",
@@ -2364,6 +2505,15 @@ name = "mirai-annotations"
 version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c9be0862c1b3f26a88803c4a49de6889c10e608b3ee9344e6ef5b45fb37ad3d1"
+
+[[package]]
+name = "multimap"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1d87ecb2933e8aeadb3e3a02b828fed80a7528047e68b4f424523a0981a3a084"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "nanorand"
@@ -4106,108 +4256,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "spoticord"
-version = "2.2.6"
-dependencies = [
- "anyhow",
- "dotenvy",
- "env_logger",
- "librespot",
- "log",
- "poise",
- "rustls 0.23.16",
- "serenity",
- "songbird",
- "spoticord_config",
- "spoticord_database",
- "spoticord_player",
- "spoticord_session",
- "spoticord_stats",
- "spoticord_utils",
- "tokio",
-]
-
-[[package]]
-name = "spoticord_audio"
-version = "2.2.6"
-dependencies = [
- "librespot",
- "songbird",
- "tokio",
- "zerocopy 0.8.9",
-]
-
-[[package]]
-name = "spoticord_config"
-version = "2.2.6"
-dependencies = [
- "rspotify",
- "serenity",
-]
-
-[[package]]
-name = "spoticord_database"
-version = "2.2.6"
-dependencies = [
- "chrono",
- "diesel",
- "diesel-async",
- "diesel_async_migrations",
- "rand",
- "rspotify",
- "spoticord_config",
- "thiserror 2.0.3",
-]
-
-[[package]]
-name = "spoticord_player"
-version = "2.2.6"
-dependencies = [
- "anyhow",
- "hex",
- "librespot",
- "log",
- "songbird",
- "spoticord_audio",
- "spoticord_utils",
- "symphonia",
- "tokio",
-]
-
-[[package]]
-name = "spoticord_session"
-version = "2.2.6"
-dependencies = [
- "anyhow",
- "base64 0.22.1",
- "librespot",
- "log",
- "poise",
- "serenity",
- "songbird",
- "spoticord_config",
- "spoticord_database",
- "spoticord_player",
- "spoticord_utils",
- "thiserror 2.0.3",
- "tokio",
-]
-
-[[package]]
-name = "spoticord_stats"
-version = "2.2.6"
-dependencies = [
- "redis",
-]
-
-[[package]]
-name = "spoticord_utils"
-version = "2.2.6"
-dependencies = [
- "poise",
-]
-
-[[package]]
 name = "stable-vec"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4802,22 +4850,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tokio-tungstenite"
-version = "0.24.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "edc5f74e248dc973e0dbb7b74c7e0d6fcc301c694ff50049504004ef4d0cdcd9"
-dependencies = [
- "futures-util",
- "log",
- "rustls 0.23.16",
- "rustls-native-certs 0.8.0",
- "rustls-pki-types",
- "tokio",
- "tokio-rustls 0.26.0",
- "tungstenite 0.24.0",
-]
-
-[[package]]
 name = "tokio-util"
 version = "0.7.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4969,26 +5001,6 @@ dependencies = [
  "sha1",
  "thiserror 1.0.69",
  "url",
- "utf-8",
-]
-
-[[package]]
-name = "tungstenite"
-version = "0.24.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18e5b8366ee7a95b16d32197d0b2604b43a0be89dc5fac9f8e96ccafbaedda8a"
-dependencies = [
- "byteorder",
- "bytes",
- "data-encoding",
- "http 1.1.0",
- "httparse",
- "log",
- "rand",
- "rustls 0.23.16",
- "rustls-pki-types",
- "sha1",
- "thiserror 1.0.69",
  "utf-8",
 ]
 
@@ -5518,6 +5530,12 @@ dependencies = [
  "quote",
  "syn 2.0.87",
 ]
+
+[[package]]
+name = "windows-link"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f0805222e57f7521d6a62e36fa9163bc891acd422f971defe97d64e70d0a4fe5"
 
 [[package]]
 name = "windows-registry"
