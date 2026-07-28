@@ -1,5 +1,6 @@
 # Rust
 /target
+*.exe
 
 # Secrets
 .env
@@ -7,4 +8,4 @@
 # Editors
 .vscode
 .vs
-.fleet
+.fleet
