@@ -3,15 +3,21 @@
 // Clean rewrite with proven voice + audio pipeline
 // ============================================================
 
-// 1. Setup ffmpeg + sodium BEFORE anything else
+// 1. Setup IPv4 DNS, ffmpeg, sodium & opus BEFORE anything else
+const dns = require('dns');
+if (dns.setDefaultResultOrder) dns.setDefaultResultOrder('ipv4first');
+
 const ffmpegStatic = require('ffmpeg-static');
 const path = require('path');
 process.env.PATH = path.dirname(ffmpegStatic) + ';' + process.env.PATH;
 
-// Force load sodium-native for voice encryption
+// Force load sodium-native & opus for voice encryption & encoding
 try { require('sodium-native'); console.log('✅ sodium-native loaded'); }
 catch { try { require('libsodium-wrappers'); console.log('✅ libsodium-wrappers loaded'); }
 catch { console.warn('⚠️ No sodium library found'); } }
+
+try { require('@discordjs/opus'); console.log('✅ @discordjs/opus loaded'); }
+catch { console.warn('⚠️ @discordjs/opus not found'); }
 
 require('dotenv').config();
 
@@ -87,23 +93,24 @@ function getQueue(guildId) {
   return queues.get(guildId);
 }
 
-// 6. Stream audio via yt-dlp piped through ffmpeg
+// 6. Stream audio via yt-dlp piped through ffmpeg OggOpus
 function streamAudio(url) {
-  // yt-dlp downloads audio and pipes raw data to stdout
   const ytdlpProc = ytdlp.exec(url, {
     output: '-',
     format: 'bestaudio/best',
     noWarnings: true
   });
 
-  // ffmpeg transcodes to s16le PCM for Discord
+  // ffmpeg encodes audio to native Opus for Discord
   const ffmpeg = spawn(ffmpegStatic, [
     '-i', 'pipe:0',
     '-analyzeduration', '0',
     '-loglevel', '0',
-    '-f', 's16le',
+    '-c:a', 'libopus',
+    '-b:a', '128k',
     '-ar', '48000',
     '-ac', '2',
+    '-f', 'opus',
     'pipe:1'
   ], { stdio: ['pipe', 'pipe', 'ignore'] });
 
@@ -140,9 +147,9 @@ async function playNext(guildId, textChannel) {
 
   try {
     let target = song.searchQuery || song.url;
-    const pcmStream = streamAudio(target);
-    const resource = createAudioResource(pcmStream, {
-      inputType: StreamType.Raw,
+    const opusStream = streamAudio(target);
+    const resource = createAudioResource(opusStream, {
+      inputType: StreamType.OggOpus,
       inlineVolume: true
     });
     resource.volume?.setVolume(q.volume / 100);

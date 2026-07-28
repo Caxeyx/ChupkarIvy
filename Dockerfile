@@ -1,18 +1,19 @@
-FROM rust:1.80-slim AS builder
+FROM node:20-slim
 
-WORKDIR /app
+# Install ffmpeg and python3 for yt-dlp audio extraction
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    python3 \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install -yqq \
-    cmake gcc libpq-dev bzip2
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+RUN npm install --omit=dev
 
 COPY . .
 
-RUN cargo build --release --no-default-features
+EXPOSE 8888
 
-FROM debian:bookworm-slim
-
-RUN apt-get update && apt-get install -y ca-certificates libpq-dev && rm -rf /var/lib/apt/lists/*
-
-COPY --from=builder /app/target/release/chupkarivy /usr/local/bin/chupkarivy
-
-ENTRYPOINT ["/usr/local/bin/chupkarivy"]
+CMD ["node", "index.js"]
