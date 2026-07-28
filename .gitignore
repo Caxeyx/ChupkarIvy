@@ -9,3 +9,6 @@
 .vscode
 .vs
 .fleet
+node_modules
+*-player-script.js
+run-bot.js
