@@ -1,7 +1,0 @@
-[package]
-name = "chupkarivy_utils"
-version.workspace = true
-edition = "2021"
-
-[dependencies]
-poise = "0.6.1"
