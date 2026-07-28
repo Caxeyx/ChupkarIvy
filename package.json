@@ -19,6 +19,7 @@
     "opusscript": "^0.0.8",
     "play-dl": "^1.9.7",
     "shoukaku": "^4.3.0",
+    "sodium-native": "^5.1.0",
     "spotify-url-info": "^3.2.14",
     "tweetnacl": "^1.0.3",
     "youtube-sr": "^4.3.12",
