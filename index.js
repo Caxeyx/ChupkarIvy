@@ -287,11 +287,13 @@ client.on('interactionCreate', async (interaction) => {
     const serverQueue = getQueue(guildId);
 
     if (commandName === 'join') {
-      serverQueue.connection = joinVoiceChannel({
-        channelId: voiceChannel.id,
-        guildId: guildId,
-        adapterCreator: voiceChannel.guild.voiceAdapterCreator
-      });
+        serverQueue.connection = joinVoiceChannel({
+          channelId: voiceChannel.id,
+          guildId: guildId,
+          adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+          selfDeaf: true,
+          selfMute: false
+        });
       serverQueue.connection.subscribe(serverQueue.player);
       return interaction.reply(`🔊 Joined **${voiceChannel.name}**!`);
     }

@@ -16,6 +16,7 @@
     "opusscript": "^0.0.8",
     "play-dl": "^1.9.7",
     "spotify-url-info": "^3.2.14",
+    "tweetnacl": "^1.0.3",
     "youtube-sr": "^4.3.12",
     "yt-dlp-exec": "^1.0.2",
     "yt-stream": "^1.7.4"
