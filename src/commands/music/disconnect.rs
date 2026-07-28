@@ -1,8 +1,8 @@
 use anyhow::Error;
 use poise::CreateReply;
 use serenity::all::CreateEmbed;
-use spoticord_session::manager::SessionQuery;
-use spoticord_utils::discord::Colors;
+use chupkarivy_session::manager::SessionQuery;
+use chupkarivy_utils::discord::Colors;
 
 use crate::bot::Context;
 

@@ -1,7 +1,7 @@
 use anyhow::Result;
 use poise::CreateReply;
 use serenity::all::{CreateEmbed, CreateEmbedAuthor};
-use spoticord_utils::discord::Colors;
+use chupkarivy_utils::discord::Colors;
 
 use crate::bot::Context;
 
@@ -14,8 +14,8 @@ pub async fn help(ctx: Context<'_>) -> Result<()> {
         CreateReply::default().embed(
             CreateEmbed::new()
                 .author(
-                    CreateEmbedAuthor::new("Spoticord Help")
-                        .icon_url("https://spoticord.com/logo-standard.webp"),
+                    CreateEmbedAuthor::new("ChupkarIvy Help")
+                        .icon_url("https://github.com/Caxeyx/ChupkarIvy/logo-standard.webp"),
                 )
                 .description(HELP_MESSAGE)
                 .color(Colors::Info),

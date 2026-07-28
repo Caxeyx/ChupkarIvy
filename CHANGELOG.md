@@ -7,7 +7,7 @@
 ## 2.2.5 | October 18th 2024
 
 - Updated librespot to rel 0.5.0 (was: 0.5.0-dev)
-- Fixed an issue where Spoticord would lose connection to Spotify servers (fixed by librespot upgrade)
+- Fixed an issue where ChupkarIvy would lose connection to Spotify servers (fixed by librespot upgrade)
 - Reworked authentication logic, hopefully reducing the amount of "suspicious login" forced password resets
 
 ## 2.2.4 | September 30th 2024
@@ -49,7 +49,7 @@
 - Renamed `/leave` to `/disconnect`
 - Removed the Database API, replaced with direct connection to a Postgres database
 
-**Full Changelog** (good luck): https://github.com/SpoticordMusic/spoticord/compare/v2.1.2..v2.2.0
+**Full Changelog** (good luck): https://github.com/Caxeyx/ChupkarIvy/compare/v2.1.2..v2.2.0
 
 ## 2.1.2 | September 28th 2023
 
@@ -62,7 +62,7 @@
 - Removed hardcoded URL in the /join command
 - Fixed an issue in /playing where the bot showed it was playing even though it was paused
 
-**Full Changelog**: https://github.com/SpoticordMusic/spoticord/compare/v2.1.1...v2.1.2
+**Full Changelog**: https://github.com/Caxeyx/ChupkarIvy/compare/v2.1.1...v2.1.2
 
 ## 2.1.1 | September 23rd 2023
 
@@ -72,7 +72,7 @@ Reduced the amount of CPU that the bot uses from ~15%-25% per user to 1%-2% per 
 
 - Fixed issue #20
 
-**Full Changelog**: https://github.com/SpoticordMusic/spoticord/compare/v2.1.0...v2.1.1
+**Full Changelog**: https://github.com/Caxeyx/ChupkarIvy/compare/v2.1.0...v2.1.1
 
 ## 2.1.0 | September 20th 2023
 
@@ -92,11 +92,11 @@ The main focus for this version is to stop using multiple processes for every pl
 - Enable autoplay
 - After skipping a song, you will no longer hear a tiny bit of the previous song after the silence
 
-**Full Changelog**: https://github.com/SpoticordMusic/spoticord/compare/v2.0.0...v2.1.0
+**Full Changelog**: https://github.com/Caxeyx/ChupkarIvy/compare/v2.0.0...v2.1.0
 
 ### Issues
 
-- Currently, the CPU usage is much higher than it used to be. I really wanted to push this update out before taking the time to do some optimizations, as the bot and server are still easily able to hold up the limited amount of Spoticord users (and v2.0.0 was just falling apart). Issue is being tracked in #20
+- Currently, the CPU usage is much higher than it used to be. I really wanted to push this update out before taking the time to do some optimizations, as the bot and server are still easily able to hold up the limited amount of ChupkarIvy users (and v2.0.0 was just falling apart). Issue is being tracked in #20
 
 ## 2.0.0 | June 8th 2023
 

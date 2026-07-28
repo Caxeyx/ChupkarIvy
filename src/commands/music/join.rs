@@ -6,9 +6,9 @@ use poise::CreateReply;
 use serenity::all::{
     Channel, ChannelId, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, UserId,
 };
-use spoticord_database::error::DatabaseError;
-use spoticord_session::manager::SessionQuery;
-use spoticord_utils::discord::Colors;
+use chupkarivy_database::error::DatabaseError;
+use chupkarivy_session::manager::SessionQuery;
+use chupkarivy_utils::discord::Colors;
 
 use crate::bot::Context;
 
@@ -108,7 +108,7 @@ pub async fn join(ctx: Context<'_>) -> Result<()> {
                     CreateEmbed::new()
                         .title("No Spotify account")
                         .description(
-                            "You need to link your Spotify account to Spoticord before being able to use it.\nUse the `/link` command to link your account.",
+                            "You need to link your Spotify account to ChupkarIvy before being able to use it.\nUse the `/link` command to link your account.",
                         )
                         .color(Colors::Error),
                 )
@@ -128,8 +128,8 @@ pub async fn join(ctx: Context<'_>) -> Result<()> {
                 CreateReply::default()
                     .embed(
                         CreateEmbed::new()
-                            .title("Spoticord is busy")
-                            .description("Spoticord is already being used in this server.")
+                            .title("ChupkarIvy is busy")
+                            .description("ChupkarIvy is already being used in this server.")
                             .color(Colors::Error),
                     )
                     .ephemeral(true),
@@ -140,7 +140,7 @@ pub async fn join(ctx: Context<'_>) -> Result<()> {
         }
     }
 
-    // Prevent the user from using Spoticord simultaneously in multiple servers
+    // Prevent the user from using ChupkarIvy simultaneously in multiple servers
     if let Some(session) = manager.get_session(SessionQuery::Owner(ctx.author().id)) {
         let server_name = session.guild().to_partial_guild(&ctx).await?.name;
 
@@ -148,11 +148,11 @@ pub async fn join(ctx: Context<'_>) -> Result<()> {
             CreateReply::default()
                 .embed(
                     CreateEmbed::new()
-                        .title("You are already using Spoticord")
+                        .title("You are already using ChupkarIvy")
                         .description(format!(
-                            "You are already using Spoticord in `{}`\n\n\
+                            "You are already using ChupkarIvy in `{}`\n\n\
                             Stop playing in that server first before starting a new session.",
-                            spoticord_utils::discord::escape(server_name)
+                            chupkarivy_utils::discord::escape(server_name)
                         ))
                         .color(Colors::Error),
                 )
@@ -207,7 +207,7 @@ pub async fn join(ctx: Context<'_>) -> Result<()> {
     {
         error!("Failed to create session: {why}");
 
-        let description = if matches!(why, spoticord_session::error::Error::AuthenticationFailed) {
+        let description = if matches!(why, chupkarivy_session::error::Error::AuthenticationFailed) {
             "Unable to authenticate with Spotify. Did you change your password?\n\nThe broken credentials used have been deleted.\n\nYou might need to relink your account using `/link`."
         } else {
             "An error occured whilst trying to create a session. Please try again."
@@ -233,7 +233,7 @@ pub async fn join(ctx: Context<'_>) -> Result<()> {
             CreateEmbed::new()
                 .author(
                     CreateEmbedAuthor::new("Connected to voice channel")
-                        .icon_url("https://spoticord.com/speaker.png"),
+                        .icon_url("https://github.com/Caxeyx/ChupkarIvy/speaker.png"),
                 )
                 .description(format!("Come listen along in <#{}>", channel))
                 .footer(CreateEmbedFooter::new(

@@ -2,12 +2,12 @@ use anyhow::Result;
 use log::error;
 use poise::CreateReply;
 use serenity::all::{CreateEmbed, CreateEmbedFooter};
-use spoticord_session::manager::SessionQuery;
-use spoticord_utils::discord::Colors;
+use chupkarivy_session::manager::SessionQuery;
+use chupkarivy_utils::discord::Colors;
 
 use crate::bot::{Context, FrameworkError};
 
-/// Unlink your Spotify account from Spoticord
+/// Unlink your Spotify account from ChupkarIvy
 #[poise::command(slash_command, on_error = on_error)]
 pub async fn unlink(
     ctx: Context<'_>,
@@ -56,7 +56,7 @@ pub async fn unlink(
             .embed(
                 CreateEmbed::new()
                     .title("Account unlinked")
-                    .description("You have unlinked your Spotify account from Spoticord.")
+                    .description("You have unlinked your Spotify account from ChupkarIvy.")
                     .footer(CreateEmbedFooter::new(
                         "Changed your mind? You can use /link to link a new Spotify account.",
                     ))

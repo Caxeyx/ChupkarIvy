@@ -5,7 +5,7 @@ use log::{error, info};
 use poise::Framework;
 use serenity::all::ClientBuilder;
 use songbird::SerenityInit;
-use spoticord_database::Database;
+use chupkarivy_database::Database;
 
 #[tokio::main]
 async fn main() {
@@ -17,16 +17,16 @@ async fn main() {
     // Setup logging
     if std::env::var("RUST_LOG").is_err() {
         #[cfg(debug_assertions)]
-        std::env::set_var("RUST_LOG", "spoticord");
+        std::env::set_var("RUST_LOG", "chupkarivy");
 
         #[cfg(not(debug_assertions))]
-        std::env::set_var("RUST_LOG", "spoticord=info");
+        std::env::set_var("RUST_LOG", "chupkarivy=info");
     }
 
     env_logger::init();
 
     info!("Today is a good day!");
-    info!(" - Spoticord");
+    info!(" - ChupkarIvy");
 
     dotenvy::dotenv().ok();
 
@@ -46,8 +46,8 @@ async fn main() {
         .build();
 
     let mut client = match ClientBuilder::new(
-        spoticord_config::discord_token(),
-        spoticord_config::discord_intents(),
+        chupkarivy_config::discord_token(),
+        chupkarivy_config::discord_intents(),
     )
     .framework(framework)
     .register_songbird_from_config(songbird::Config::default().use_softclip(false))

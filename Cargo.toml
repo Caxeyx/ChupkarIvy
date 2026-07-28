@@ -1,37 +1,37 @@
 [package]
-name = "spoticord"
+name = "chupkarivy"
 version = "2.2.6"
 edition = "2021"
 rust-version = "1.80.0"
 
 [[bin]]
-name = "spoticord"
+name = "chupkarivy"
 path = "src/main.rs"
 
 [workspace]
 members = [
-    "spoticord_audio",
-    "spoticord_config",
-    "spoticord_database",
-    "spoticord_player",
-    "spoticord_session",
-    "spoticord_utils",
-    "spoticord_stats",
+    "chupkarivy_audio",
+    "chupkarivy_config",
+    "chupkarivy_database",
+    "chupkarivy_player",
+    "chupkarivy_session",
+    "chupkarivy_utils",
+    "chupkarivy_stats",
 ]
 
 [features]
 default = ["stats"]
-stats = ["spoticord_stats"]
+stats = ["chupkarivy_stats"]
 
 [dependencies]
-spoticord_config = { path = "./spoticord_config" }
-spoticord_database = { path = "./spoticord_database" }
-spoticord_player = { path = "./spoticord_player" }
-spoticord_session = { path = "./spoticord_session" }
-spoticord_utils = { path = "./spoticord_utils" }
-spoticord_stats = { path = "./spoticord_stats", optional = true }
+chupkarivy_config = { path = "./chupkarivy_config" }
+chupkarivy_database = { path = "./chupkarivy_database" }
+chupkarivy_player = { path = "./chupkarivy_player" }
+chupkarivy_session = { path = "./chupkarivy_session" }
+chupkarivy_utils = { path = "./chupkarivy_utils" }
+chupkarivy_stats = { path = "./chupkarivy_stats", optional = true }
 
-librespot = { git = "https://github.com/SpoticordMusic/librespot.git", default-features = false }
+librespot = { git = "https://github.com/ChupkarIvyMusic/librespot.git", default-features = false }
 anyhow = "1.0.93"
 dotenvy = "0.15.7"
 env_logger = "0.11.5"

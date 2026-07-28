@@ -1,8 +1,8 @@
 use anyhow::Result;
 use poise::CreateReply;
 use serenity::all::CreateEmbed;
-use spoticord_session::{manager::SessionQuery, playback_embed::UpdateBehavior};
-use spoticord_utils::discord::Colors;
+use chupkarivy_session::{manager::SessionQuery, playback_embed::UpdateBehavior};
+use chupkarivy_utils::discord::Colors;
 
 use crate::bot::Context;
 
@@ -10,7 +10,7 @@ use crate::bot::Context;
 #[poise::command(slash_command, guild_only)]
 pub async fn playing(
     ctx: Context<'_>,
-    #[description = "How Spoticord should update this information"] update_behavior: Option<
+    #[description = "How ChupkarIvy should update this information"] update_behavior: Option<
         UpdateBehavior,
     >,
 ) -> Result<()> {

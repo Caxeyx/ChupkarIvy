@@ -1,6 +1,6 @@
 use anyhow::Result;
 use poise::CreateReply;
-use spoticord_database::error::DatabaseError;
+use chupkarivy_database::error::DatabaseError;
 
 use crate::bot::Context;
 

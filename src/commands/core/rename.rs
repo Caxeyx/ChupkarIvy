@@ -2,8 +2,8 @@ use anyhow::Result;
 use log::error;
 use poise::CreateReply;
 use serenity::all::{CreateEmbed, CreateEmbedFooter};
-use spoticord_session::manager::SessionQuery;
-use spoticord_utils::discord::Colors;
+use chupkarivy_session::manager::SessionQuery;
+use chupkarivy_utils::discord::Colors;
 
 use crate::bot::Context;
 
@@ -27,7 +27,7 @@ pub async fn rename(
                 CreateReply::default()
                     .embed(
                         CreateEmbed::new()
-                            .description("Something went wrong whilst trying to rename your Spoticord device.")
+                            .description("Something went wrong whilst trying to rename your ChupkarIvy device.")
                             .color(Colors::Error),
                     )
                     .ephemeral(true),
@@ -46,7 +46,7 @@ pub async fn rename(
                 .embed(
                     CreateEmbed::new()
                         .description(
-                            "Something went wrong while trying to rename your Spoticord device.",
+                            "Something went wrong while trying to rename your ChupkarIvy device.",
                         )
                         .color(Colors::Error),
                 )
@@ -68,7 +68,7 @@ pub async fn rename(
                 let mut embed = CreateEmbed::new()
                     .description(format!(
                         "Successfully changed the Spotify device name to **{}**",
-                        spoticord_utils::discord::escape(name)
+                        chupkarivy_utils::discord::escape(name)
                     ))
                     .color(Colors::Success);
 

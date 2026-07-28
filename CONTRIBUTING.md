@@ -4,7 +4,7 @@
 
 ### By reporting bugs
 
-If you find a bug, please report it to the [issue tracker](https://github.com/SpoticordMusic/spoticord) on GitHub. When reporting bugs, it is recommended that you make use of the provided template.
+If you find a bug, please report it to the [issue tracker](https://github.com/Caxeyx/ChupkarIvy) on GitHub. When reporting bugs, it is recommended that you make use of the provided template.
 
 When filing your bug, please be as precise as possible. Bugs that can be reproduced by anyone are much easier to fix. If you can, please include a minimal test case that demonstrates the bug. This makes it much easier to track down the bug.
 
@@ -18,7 +18,7 @@ If you want to suggest new features more casually, rather than officially here o
 
 If you want to contribute code, you can do so through GitHub by forking the repository and sending a pull request.
 
-It is generally recommended that you create an issue on the [issue tracker](https://github.com/SpoticordMusic/spoticord) on GitHub before you start working on a feature. This allows us to discuss the feature and make sure that it is something that we want to add to the project. If you are not sure whether a feature is something that we want to add, you can always ask us on our [Discord server](https://discord.gg/wRCyhVqBZ5).
+It is generally recommended that you create an issue on the [issue tracker](https://github.com/Caxeyx/ChupkarIvy) on GitHub before you start working on a feature. This allows us to discuss the feature and make sure that it is something that we want to add to the project. If you are not sure whether a feature is something that we want to add, you can always ask us on our [Discord server](https://discord.gg/wRCyhVqBZ5).
 
 The flow will look something like this:
 

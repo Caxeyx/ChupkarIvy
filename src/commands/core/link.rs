@@ -6,12 +6,12 @@ use poise::{serenity_prelude::Error, CreateReply};
 use serenity::all::{
     CreateActionRow, CreateButton, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter,
 };
-use spoticord_database::error::DatabaseResultExt;
-use spoticord_utils::discord::Colors;
+use chupkarivy_database::error::DatabaseResultExt;
+use chupkarivy_utils::discord::Colors;
 
 use crate::bot::{Context, FrameworkError};
 
-/// Link your Spotify account to Spoticord
+/// Link your Spotify account to ChupkarIvy
 #[poise::command(slash_command, on_error = on_error)]
 pub async fn link(ctx: Context<'_>) -> Result<()> {
     let db = ctx.data().database();
@@ -49,7 +49,7 @@ pub async fn link(ctx: Context<'_>) -> Result<()> {
 }
 
 async fn send_link_message(ctx: Context<'_>, token: impl Display) -> Result<(), Error> {
-    let link = format!("{}/{token}", spoticord_config::link_url());
+    let link = format!("{}/{token}", chupkarivy_config::link_url());
 
     ctx.send(
         CreateReply::default()
@@ -58,7 +58,7 @@ async fn send_link_message(ctx: Context<'_>, token: impl Display) -> Result<(), 
                     .author(
                         CreateEmbedAuthor::new("Link your Spotify account")
                             .url(&link)
-                            .icon_url("https://spoticord.com/spotify-logo.png"),
+                            .icon_url("https://github.com/Caxeyx/ChupkarIvy/spotify-logo.png"),
                     )
                     .description("Click on the button below to start linking your Spotify account.")
                     .color(Colors::Info),
